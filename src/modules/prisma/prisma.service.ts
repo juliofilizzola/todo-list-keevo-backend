@@ -1,26 +1,77 @@
-import { Injectable } from '@nestjs/common';
-import { CreatePrismaDto } from './dto/create-prisma.dto';
-import { UpdatePrismaDto } from './dto/update-prisma.dto';
+import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+import { PrismaClient } from '@prisma/client';
 
 @Injectable()
-export class PrismaService {
-  create(createPrismaDto: CreatePrismaDto) {
-    return 'This action adds a new prisma';
+export class PrismaService
+  extends PrismaClient
+  implements OnModuleInit, OnModuleDestroy
+{
+  async onModuleInit() {
+    await this.$connect();
+    await this.middlewareSoftDelete();
+    await this.middlewareListSoftDelete();
   }
 
-  findAll() {
-    return `This action returns all prisma`;
+  async onModuleDestroy() {
+    await this.$disconnect();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} prisma`;
+  async middlewareSoftDelete() {
+    this.$use(async (params, next) => {
+      if (params.action == 'delete') {
+        params.action = 'update';
+        params.args['data'] = { deletedAt: new Date() };
+      }
+
+      if (params.action == 'deleteMany') {
+        params.action = 'updateMany';
+        if (params.args.data != undefined) {
+          params.args.data['deletedAt'] = new Date();
+        } else {
+          params.args['data'] = { deletedAt: new Date() };
+        }
+      }
+
+      return next(params);
+    });
   }
 
-  update(id: number, updatePrismaDto: UpdatePrismaDto) {
-    return `This action updates a #${id} prisma`;
-  }
+  async middlewareListSoftDelete() {
+    this.$use(async (params, next) => {
+      if (params.action === 'findUnique' || params.action === 'findFirst') {
+        params.action = 'findFirst';
+        if (!params.args.where['deletedAt']) {
+          params.args.where = {
+            ...params.args.where,
+            deletedAt: null,
+          };
+        }
+      }
 
-  remove(id: number) {
-    return `This action removes a #${id} prisma`;
+      if (params.action == 'findMany') {
+        if (params.args.where) {
+          if (params.args.where.deletedAt == undefined) {
+            params.args.where = {
+              ...params.args.where,
+              deletedAt: null,
+            };
+          }
+        } else {
+          params.args['where'] = { ...params.args.where, deletedAt: null };
+        }
+      }
+
+      if (params.action == 'aggregate' && params.dataPath.includes('_count')) {
+        if (params.args.where != undefined) {
+          if (params.args.where.deletedAt == undefined) {
+            params.args.where = { ...params.args.where, deletedAt: null };
+          }
+        } else {
+          params.args['where'] = { ...params.args.where, deletedAt: null };
+        }
+      }
+
+      return next(params);
+    });
   }
 }
