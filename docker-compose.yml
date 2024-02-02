@@ -1,0 +1,25 @@
+services:
+  app:
+    container_name: todo_list_backend
+    build: .
+    ports:
+      - 3000:3000
+    volumes:
+      - .:/home/node/app
+    depends_on:
+      - db
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    external_links:
+      - db
+
+  db:
+    container_name: todo_list_db
+    image: postgres:13-alpine
+    restart: always
+    tty: true
+    environment:
+      POSTGRES_PASSWORD: 123456
+      POSTGRES_DB: todo_list_dev
+    ports:
+      - "5432:5432"
