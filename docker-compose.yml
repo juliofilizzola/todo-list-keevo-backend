@@ -18,8 +18,11 @@ services:
     image: postgres:13-alpine
     restart: always
     tty: true
+    env_file:
+      - .env
     environment:
-      POSTGRES_PASSWORD: 123456
-      POSTGRES_DB: todo_list_dev
+      POSTGRES_USER: ${POSTGRESQL_USER}
+      POSTGRES_PASSWORD: ${POSTGRESQL_PASSWORD}
+      POSTGRES_DB: ${POSTGRESQL_DB}
     ports:
       - "5432:5432"
