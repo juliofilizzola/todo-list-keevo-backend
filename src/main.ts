@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -18,6 +19,20 @@ async function bootstrap() {
   );
 
   const port = process.env.PORT || 3000;
+
+  const config = new DocumentBuilder()
+    .setTitle('todo list Keevo')
+    .setDescription('Todo Logging API')
+    .addServer(`http://localhost:${port}`)
+    .setVersion('1.0')
+    .build();
+
+  const document = SwaggerModule.createDocument(app, config);
+
+  SwaggerModule.setup('doc', app, document, {
+    customSiteTitle: 'Todo API',
+  });
+
   await app
     .listen(port)
     .then(() => console.log(`project running in port: ${port}`));
