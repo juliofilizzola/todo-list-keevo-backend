@@ -13,7 +13,7 @@ datasource db {
 model Todo {
   id          String     @id @default(uuid())
   title       String
-  description String     @db.Citext
+  description String     @db.VarChar(2000)
   status      StatusTodo @default(created)
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
