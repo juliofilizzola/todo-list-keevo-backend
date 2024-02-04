@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { DatabaseInterceptor } from './interceptor/database.interceptor';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -32,7 +33,7 @@ async function bootstrap() {
   SwaggerModule.setup('doc', app, document, {
     customSiteTitle: 'Todo API',
   });
-
+  app.useGlobalInterceptors(new DatabaseInterceptor());
   await app
     .listen(port)
     .then(() => console.log(`project running in port: ${port}`));
