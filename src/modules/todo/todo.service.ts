@@ -1,8 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateTodoDto } from './dto/create-todo.dto';
 import { UpdateTodoDto } from './dto/update-todo.dto';
 import { PrismaService } from '../../prisma/prisma.service';
-import { Todo } from '@prisma/client';
+import { Prisma, StatusTodo, Todo } from '@prisma/client';
+import { ParamsPagination } from '../../pagination/dto/params-pagination';
+import { paginateResponse } from '../../pagination/pagination';
 
 @Injectable()
 export class TodoService {
@@ -11,19 +13,87 @@ export class TodoService {
     return this.todoService.todo.create({ data: createTodoDto });
   }
 
-  findAll() {
-    return 'This action returns all todo';
+  async findAll(searchParams?: StatusTodo, pagination?: ParamsPagination) {
+    const where: Prisma.TodoWhereInput = {
+      status: searchParams,
+    };
+
+    if (pagination) {
+      const { page, limit } = pagination;
+
+      const count = await this.todoService.todo.count({ where });
+      const result = await this.todoService.todo.findMany({
+        where,
+        skip: (page - 1) * limit,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+      });
+
+      return paginateResponse<Todo>({ total: count, result, page, limit });
+    }
+
+    return this.todoService.todo.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+  async findOne(id: string): Promise<Todo> {
+    const todo = await this.todoService.todo.findUnique({
+      where: {
+        id,
+      },
+    });
+
+    if (!todo) {
+      throw new NotFoundException({
+        message: 'todo not found',
+      });
+    }
+
+    return todo;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} todo`;
+  async update(id: string, updateTodoDto: UpdateTodoDto) {
+    const todo = await this.todoService.todo.findFirst({
+      where: {
+        id,
+      },
+    });
+    if (!todo) {
+      throw new NotFoundException({
+        message: 'todo not found',
+      });
+    }
+
+    return this.todoService.todo.update({
+      where: {
+        id,
+      },
+      data: updateTodoDto,
+    });
   }
 
-  update(id: number, updateTodoDto: UpdateTodoDto) {
-    return `This action updates a #${id} todo`;
-  }
+  async remove(id: string) {
+    const todo = await this.todoService.todo.findFirst({
+      where: {
+        id,
+      },
+    });
 
-  remove(id: number) {
-    return `This action removes a #${id} todo`;
+    if (!todo) {
+      throw new NotFoundException({
+        message: 'todo not found',
+      });
+    }
+
+    await this.todoService.todo.delete({
+      where: {
+        id,
+      },
+    });
+
+    return {
+      message: 'todo deleted successfully',
+    };
   }
 }
