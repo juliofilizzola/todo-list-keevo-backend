@@ -1,73 +1,219 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="200" alt="Nest Logo" /></a>
-</p>
+# Todo List Keevo
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Api de registro de todo, com status de progresso de cada um
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Tecnologias
 
-## Description
+Essa api foi feita com as seguintes tecnologias:
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+- NestJs
+- PrismaJS (ORM)
+- Swagger
+- Docker
+- Postgresql
 
-## Installation
+## Como executar
 
-```bash
-$ yarn install
-```
+Essa api foi feita com o conceito de Docker, tanto a api como o banco de dados estão dentro do docker.
 
-## Running the app
+A Api está rodando na porta 3000, caso exista algum conflito, modifique no arquivo docker-compose
 
-```bash
-# development
-$ yarn run start
+Para rodar o docker é simples.
 
-# watch mode
-$ yarn run start:dev
+##### _(certifique-se que o docker está instalado em sua maquina)_
 
-# production mode
-$ yarn run start:prod
-```
+````bash
+  docker compose up -d
+````
 
-## Test
+## Swagger
 
-```bash
-# unit tests
-$ yarn run test
+A Api conta com uma documentação swagger. Para ela esta na rota ```http://localhost:3000/doc```
 
-# e2e tests
-$ yarn run test:e2e
+## Status
 
-# test coverage
-$ yarn run test:cov
-```
+As todos tem status, para saber melhor o desenvolvimento delas.
 
-## Support
+````json
+{
+  created
+  started
+  completed
+}
+````
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+## Rotas
 
-## Stay in touch
+As Rotas estão no caminho ``http://localhost:3000/todo``.
 
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
 
-## License
+- Create
+  - ``http://localhost:3000/todo``
+  - Method Post
 
-Nest is [MIT licensed](LICENSE).
+  body:
+  ````json
+  {
+    "title": "fazer dever de casa",
+    "description": "Atividade de historia"
+  }
+  ````
+
+  retorno:
+
+  ````json
+  {
+    "id": "e10946f3-8991-44df-811d-5749a2c0797f",
+    "title": "fazer dever de casa",
+    "description": "Atividade de historia",
+    "status": "created",
+    "createdAt": "2024-02-04T17:55:06.716Z",
+    "updatedAt": "2024-02-04T17:55:06.716Z",
+    "deletedAt": null
+  }
+  ````
+---
+
+- Find All
+  - ``http://localhost:3000/todo``
+  - Method Get
+
+  retorno:
+
+   ````json
+    [
+      {
+        "id": "e10946f3-8991-44df-811d-5749a2c0797f",
+        "title": "fazer dever de casa",
+        "description": "Atividade de historia",
+        "status": "created",
+        "createdAt": "2024-02-04T17:55:06.716Z",
+        "updatedAt": "2024-02-04T17:55:06.716Z",
+        "deletedAt": null
+      }
+    ]
+  ````
+  - VARIANTES
+
+    Essa rota possui tipagem e também filtro de status da todo.
+
+    - paginada
+      - ``http://localhost:3000/todo?page=1&limit=2``
+
+      retorno
+      ````json
+          {
+            "data": [
+                {
+                    "id": "e10946f3-8991-44df-811d-5749a2c0797f",
+                    "title": "fazer dever de casa",
+                    "description": "Atividade de historia",
+                    "status": "created",
+                    "createdAt": "2024-02-04T17:55:06.716Z",
+                    "updatedAt": "2024-02-04T17:55:06.716Z",
+                    "deletedAt": null
+                },
+                {
+                    "id": "383064a3-d277-4ced-83dc-551e4a79c9d8",
+                    "title": "comprar leite",
+                    "description": "preciso de leite para fazer bolo",
+                    "status": "completed",
+                    "createdAt": "2024-02-03T18:00:25.140Z",
+                    "updatedAt": "2024-02-03T18:00:25.140Z",
+                    "deletedAt": null
+                }
+            ],
+            "count": 4,
+            "currentPage": 1,
+            "nextPage": 2,
+            "prevPage": null,
+            "lastPage": 2
+      }
+      ````
+      - filtrado por status
+        - ``http://localhost:3000/todo?page=1&limit=1&status=created``
+          - Status:
+              ````json
+            {
+              created
+              started
+              completed
+            }
+            ````
+
+        retorno
+        ````json
+            {
+              "data": [
+                  {
+                      "id": "e10946f3-8991-44df-811d-5749a2c0797f",
+                      "title": "fazer dever de casa",
+                      "description": "Atividade de historia",
+                      "status": "created",
+                      "createdAt": "2024-02-04T17:55:06.716Z",
+                      "updatedAt": "2024-02-04T17:55:06.716Z",
+                      "deletedAt": null
+                  }
+              ],
+              "count": 3,
+              "currentPage": 1,
+              "nextPage": 2,
+              "prevPage": null,
+              "lastPage": 2
+        }
+        ````
+---
+  - Find One
+    - ``http://localhost:3000/todo/e10946f3-8991-44df-811d-5749a2c0797f``
+    - Method Get
+
+
+    Retorno:
+    ````json
+    {
+      "id": "e10946f3-8991-44df-811d-5749a2c0797f",
+      "title": "fazer dever de casa",
+      "description": "Atividade de historia",
+      "status": "created",
+      "createdAt": "2024-02-04T17:55:06.716Z",
+      "updatedAt": "2024-02-04T17:55:06.716Z",
+      "deletedAt": null
+    }
+    ````
+
+---
+ - Update
+   - ``http://localhost:3000/todo/e10946f3-8991-44df-811d-5749a2c0797f``
+   - Method Patch
+
+    Body:
+      ````json
+      {
+       "status": "completed"
+      }
+      ````
+
+   Retorno:
+    ````json
+    {
+      "id": "e10946f3-8991-44df-811d-5749a2c0797f",
+      "title": "fazer dever de casa",
+      "description": "Atividade de historia",
+      "status": "completed",
+      "createdAt": "2024-02-04T17:55:06.716Z",
+      "updatedAt": "2024-02-04T17:55:06.716Z",
+      "deletedAt": null
+    }
+    ````
+---
+- Deleted
+  - ``http://localhost:3000/todo/e10946f3-8991-44df-811d-5749a2c0797f``
+  - Method Delete
+
+  Retorno:
+
+  ````json
+  {
+    "message": "todo deleted successfully"
+  }
+  ````
