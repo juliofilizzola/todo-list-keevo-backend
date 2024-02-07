@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   app:
     container_name: todo_list_backend
@@ -8,21 +10,17 @@ services:
       - .:/home/node/app
     depends_on:
       - db
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     external_links:
       - db
 
   db:
     container_name: todo_list_db
-    image: postgres:13-alpine
+    image: postgres:9-alpine
     restart: always
     tty: true
-    env_file:
-      - .env
     environment:
-      POSTGRES_USER: ${POSTGRESQL_USER}
-      POSTGRES_PASSWORD: ${POSTGRESQL_PASSWORD}
-      POSTGRES_DB: ${POSTGRESQL_DB}
+      POSTGRES_USER: todo_list
+      POSTGRES_PASSWORD: todo-123456
+      POSTGRES_DB: todo_list_local
     ports:
       - "5432:5432"
