@@ -1,12 +1,17 @@
-FROM node:20-slim
+FROM node:18-alpine AS builder
 
 WORKDIR /home/node/app
 
-COPY package*.json ./
+# A wildcard is used to ensure both package.json AND package-lock.json are copied
+COPY prisma ./prisma/
 COPY .env.example .env
+COPY --chown=node:node package.json yarn.lock ./
 
-RUN apt update -y && apt install procps -y && npm install -g @nestjs/cli@10.3.0 -y
+# Install app dependencies
+RUN yarn install --silent
 
-USER node
+COPY . .
 
-CMD ["tail", "-f", "/dev/null"]
+EXPOSE 3000
+
+CMD ["yarn", "run", "start:dev"]
