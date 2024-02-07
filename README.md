@@ -7,7 +7,7 @@ Api de registro de todo, com status de progresso de cada um
 Essa api foi feita com as seguintes tecnologias:
 
 - NestJs
-- PrismaJS (ORM)
+- Typorm (ORM)
 - Swagger
 - Docker
 - Postgresql

@@ -1,6 +1,6 @@
-import { StatusTodo } from '@prisma/client';
 import { IsEnum, IsOptional } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
+import { StatusTodo } from './status-todo.dto';
 
 export class StatusParamDto {
   @IsOptional()

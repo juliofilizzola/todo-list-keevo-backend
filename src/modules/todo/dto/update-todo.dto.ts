@@ -1,8 +1,8 @@
 import { PartialType } from '@nestjs/mapped-types';
 import { CreateTodoDto } from './create-todo.dto';
-import { StatusTodo } from '@prisma/client';
 import { IsEnum, IsNotEmpty, IsString } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
+import { StatusTodo } from './status-todo.dto';
 
 export class UpdateTodoDto extends PartialType(CreateTodoDto) {
   @IsEnum(StatusTodo, {

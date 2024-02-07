@@ -1,44 +1,56 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateTodoDto } from './dto/create-todo.dto';
 import { UpdateTodoDto } from './dto/update-todo.dto';
-import { PrismaService } from '../../prisma/prisma.service';
-import { Prisma, StatusTodo, Todo } from '@prisma/client';
 import { ParamsPagination } from '../../pagination/dto/params-pagination';
 import { paginateResponse } from '../../pagination/pagination';
+import { Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Todo } from './entities/todo.entity';
+import { StatusTodo } from './dto/status-todo.dto';
 
 @Injectable()
 export class TodoService {
-  constructor(private readonly todoService: PrismaService) {}
-  async create(createTodoDto: CreateTodoDto): Promise<Todo> {
-    return this.todoService.todo.create({ data: createTodoDto });
+  constructor(
+    @InjectRepository(Todo)
+    private readonly todoRepo: Repository<Todo>,
+  ) {}
+  async create(createTodoDto: CreateTodoDto) {
+    try {
+      const todo = this.todoRepo.create(createTodoDto);
+      return this.todoRepo.save(todo);
+    } catch (e) {
+      console.error(e);
+    }
   }
 
   async findAll(searchParams?: StatusTodo, pagination?: ParamsPagination) {
-    const where: Prisma.TodoWhereInput = {
+    const where = {
       status: searchParams,
     };
 
     if (pagination) {
       const { page, limit } = pagination;
 
-      const count = await this.todoService.todo.count({ where });
-      const result = await this.todoService.todo.findMany({
+      const count = await this.todoRepo.count({ where });
+      const result = await this.todoRepo.find({
         where,
         skip: (page - 1) * limit,
         take: limit,
-        orderBy: { createdAt: 'desc' },
+        order: {
+          createdAt: 'desc',
+        },
       });
 
       return paginateResponse<Todo>({ total: count, result, page, limit });
     }
 
-    return this.todoService.todo.findMany({
+    return this.todoRepo.find({
       where,
-      orderBy: { createdAt: 'desc' },
+      order: { createdAt: 'desc' },
     });
   }
   async findOne(id: string): Promise<Todo> {
-    const todo = await this.todoService.todo.findUnique({
+    const todo = await this.todoRepo.findOne({
       where: {
         id,
       },
@@ -54,7 +66,7 @@ export class TodoService {
   }
 
   async update(id: string, updateTodoDto: UpdateTodoDto) {
-    const todo = await this.todoService.todo.findFirst({
+    const todo = await this.todoRepo.findOne({
       where: {
         id,
       },
@@ -65,16 +77,14 @@ export class TodoService {
       });
     }
 
-    return this.todoService.todo.update({
-      where: {
-        id,
-      },
-      data: updateTodoDto,
+    return this.todoRepo.save({
+      id,
+      ...updateTodoDto,
     });
   }
 
   async remove(id: string) {
-    const todo = await this.todoService.todo.findFirst({
+    const todo = await this.todoRepo.findOne({
       where: {
         id,
       },
@@ -86,11 +96,7 @@ export class TodoService {
       });
     }
 
-    await this.todoService.todo.delete({
-      where: {
-        id,
-      },
-    });
+    await this.todoRepo.remove(todo);
 
     return {
       message: 'todo deleted successfully',
